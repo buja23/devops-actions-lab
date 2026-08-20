@@ -1,0 +1,24 @@
+name: Hello World CI
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  info:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Imprimir informações do workflow e runner
+        env:
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          echo "Evento disparador: ${{ github.event_name }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "SHA do Commit (8 caracteres): ${COMMIT_SHA:0:8}"
+          echo "Sistema Operacional do Runner: ${{ runner.os }}"
+
+          
