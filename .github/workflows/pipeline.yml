@@ -1,7 +1,7 @@
 name: Jobs Encadeados
 on:
   push:
-    branches: [ main, dev ] # Adicionei 'dev' para você poder testar a restrição do 'if' depois, se quiser
+    branches: [ main, dev ] 
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -9,20 +9,20 @@ jobs:
       - run: echo "Executando ESLint..."
       
   test:
-    needs: lint # O test só inicia se o lint passar
+    needs: lint 
     runs-on: ubuntu-latest
     steps:
       - run: echo "Executando testes com Jest..."
       
   build:
-    needs: test # O build só inicia se o test passar
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - run: echo "Simulando build da aplicação..."
       
   deploy:
-    needs: build # O deploy só inicia se o build passar
-    if: github.ref == 'refs/heads/main' # Regra de ouro: Só faz deploy se a branch for a main
+    needs: build 
+    if: github.ref == 'refs/heads/main' 
     runs-on: ubuntu-latest
     steps:
       - run: echo "Simulando deploy em produção..."
