@@ -1,0 +1,116 @@
+name: Pipeline Completo CI/CD
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  # 1. Análise Estática
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Cache npm
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: ${{ runner.os }}-node-
+      - name: Instalar dependências
+        run: npm ci
+      - name: Executar Linter
+        run: npx eslint .
+
+  # 2. Testes Unitários em Matriz
+  test:
+    needs: lint
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18, 20]
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Cache npm
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+      - name: Instalar dependências
+        run: npm ci
+      - name: Executar Testes Unitários
+        run: npm test
+
+  # 3. Build e Push da Imagem Docker
+  docker-build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+      - name: Login no Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build e Push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/calculadora-actions:latest
+
+  # 4. Testes de Integração com Docker Compose
+  integration:
+    needs: docker-build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+      - name: Subir ambiente
+        run: docker compose up -d --build
+      - name: Aguardar API
+        run: |
+          while ! curl -s http://localhost:3000/health | grep -q "db: connected"; do
+            sleep 3
+          done
+      - name: Testar API
+        run: |
+          curl -s -f http://localhost:3000/health
+          curl -s -f http://localhost:3000/items
+      - name: Derrubar ambiente
+        if: always()
+        run: docker compose down
+
+  # 5. Deploy em Staging (Automático)
+  deploy-staging:
+    needs: integration
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Deploy simulado em Staging
+        run: echo "Deploy automático realizado com sucesso no ambiente Staging!"
+
+  # 6. Deploy em Produção (Com aprovação) e Resumo Final
+  deploy-production:
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Deploy simulado em Produção
+        run: echo "Deploy aprovado e realizado em Produção!"
+      - name: Notificação de Resumo
+        run: |
+          echo "========================================="
+          echo "✅ Pipeline Finalizado com Sucesso!"
+          echo "Commit SHA: ${{ github.sha }}"
+          echo "Autor: ${{ github.actor }}"
+          echo "========================================="
