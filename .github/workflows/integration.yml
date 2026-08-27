@@ -1,0 +1,33 @@
+name: Docker Compose Integration
+on:
+  push:
+    branches: [ main ]
+jobs:
+  integration-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+        
+      - name: Subir o ambiente
+        run: docker compose up -d --build
+        
+      - name: Aguardar API e Banco ficarem prontos
+        run: |
+          echo "Aguardando..."
+          while ! curl -s http://localhost:3000/health | grep -q "db: connected"; do
+            sleep 3
+          done
+          echo "Ambiente pronto!"
+          
+      - name: Executar testes de integração
+        run: |
+          echo "Testando rota /health (Status 200)"
+          curl -s -f http://localhost:3000/health
+          
+          echo "Testando rota /items (Retorno de dados)"
+          curl -s -f http://localhost:3000/items
+          
+      - name: Derrubar o ambiente
+        if: always()
+        run: docker compose down
