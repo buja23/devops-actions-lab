@@ -1,0 +1,19 @@
+name: Deploy Reutilizável
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      version:
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # Aqui o job assume a identidade do ambiente passado como parâmetro
+    environment: ${{ inputs.environment }} 
+    steps:
+      - name: Simular Deploy
+        run: echo "Realizando deploy da versão ${{ inputs.version }} no ambiente ${{ inputs.environment }}..."

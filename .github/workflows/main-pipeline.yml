@@ -1,0 +1,20 @@
+name: Main Pipeline (Deploy Environments)
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  # Chama o reutilizável para Staging (Automático)
+  deploy-staging:
+    uses: ./.github/workflows/deploy-reusable.yml
+    with:
+      environment: staging
+      version: ${{ github.sha }}
+      
+  # Chama o reutilizável para Produção (Requer Aprovação)
+  deploy-production:
+    needs: deploy-staging
+    uses: ./.github/workflows/deploy-reusable.yml
+    with:
+      environment: production
+      version: ${{ github.sha }}
