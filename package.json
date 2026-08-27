@@ -1,0 +1,25 @@
+{
+  "name": "devops-actions-lab",
+  "version": "1.0.0",
+  "description": "",
+  "main": "calc.test.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/buja23/devops-actions-lab.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/buja23/devops-actions-lab/issues"
+  },
+  "homepage": "https://github.com/buja23/devops-actions-lab#readme",
+  "devDependencies": {
+    "eslint": "^10.9.1",
+    "jest": "^30.4.2"
+  }
+}
